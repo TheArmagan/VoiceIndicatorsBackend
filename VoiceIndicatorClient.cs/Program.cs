@@ -8,7 +8,7 @@ using VoiceIndicatorClient;
 var userName = Console.ReadLine();
 var connection = new HubConnectionBuilder()
     .ConfigureLogging(logging => { logging.SetMinimumLevel(LogLevel.Debug); logging.AddConsole(); })
-    .WithUrl("http://localhost:5232/indicators")
+    .WithUrl("http://localhost:5232/voice-indicators")
     .WithAutomaticReconnect()
     .Build();
 connection.On<string>("ReceiveMessage", (message) =>

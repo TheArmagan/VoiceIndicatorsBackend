@@ -7,24 +7,20 @@ using VoiceIndicatorsBackend;
 var builder = WebApplication.CreateBuilder(args);
 ConfigureRedis(builder);
 builder.Services.AddHttpClient();
-//JsonSerializerOptions serializer = new()
-//{
-//    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-//    PropertyNameCaseInsensitive = true,
-//    UnmappedMemberHandling = JsonUnmappedMemberHandling.Skip,
-//    Converters = { new JsonStringEnumConverter() }
-    
-//};
-//GlobalHost.DependencyResolver.Register(typeof(JsonSerializer), () => serializer);
-builder.Services.AddSignalR()
-//    .AddJsonProtocol().AddHubOptions<IndicatorsHub>(x =>
-//{
-//    x.SupportedProtocols = new List<string> { "json" };
-//    x.EnableDetailedErrors = true;
-//})
-;
+builder.Services.AddSignalR();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowDiscord", builder =>
+    {
+        builder.AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials()
+            .WithOrigins("https://discord.com");
+    });
+});
 var app = builder.Build();
-app.MapHub<IndicatorsHub>("/indicators");
+app.UseCors("AllowDiscord");
+app.MapHub<VoiceIndicatorsHub>("/voice-indicators");
 app.Run();
 
 static void ConfigureRedis(WebApplicationBuilder builder)

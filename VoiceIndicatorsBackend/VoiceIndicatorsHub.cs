@@ -4,11 +4,11 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 namespace VoiceIndicatorsBackend;
 
-public class IndicatorsHub : Hub
+public class VoiceIndicatorsHub : Hub
 {
     IDatabase _database;
 
-    public IndicatorsHub(IDatabase database)
+    public VoiceIndicatorsHub(IDatabase database)
     {
         _database = database;
     }
@@ -40,7 +40,11 @@ public class IndicatorsHub : Hub
     }
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        _connections.TryRemove(_connections.FirstOrDefault(x => x.Value == Context.ConnectionId).Key, out string? _);
+        try
+        {
+            _connections.TryRemove(_connections.FirstOrDefault(x => x.Value == Context.ConnectionId).Key, out string? _);
+        } catch { }
+        Console.Out.WriteLine("Disconnected: "+Context.ConnectionId+", Size: "+_connections.Count);
         await base.OnDisconnectedAsync(exception);
     }
 
