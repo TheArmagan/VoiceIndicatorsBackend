@@ -11,6 +11,10 @@ public class VoiceIndicatorsHub : Hub
     public VoiceIndicatorsHub(IDatabase database)
     {
         _database = database;
+        try
+        {
+            _database.ExecuteAsync("FT.CREATE", "VIChannels ON JSON PREFIX 1 VI:Channels: SCHEMA $.UserIds.* AS UserIds TAG $.SenderUserIds.* AS SenderUserIds TAG $.GuildId AS GuildId TAG");
+        } catch { }
     }
     ConcurrentDictionary<string, string> _connections = new ConcurrentDictionary<string, string>();
     public async Task SendMessage(string message)
@@ -18,16 +22,20 @@ public class VoiceIndicatorsHub : Hub
         await Clients.All.SendAsync("ReceiveMessage", message);
     }
 
-    public void Test(string props)
-    {
-        var test = JsonSerializer.Deserialize<Test>(props);
-        Console.Out.WriteLine();
-    }
+    //public void Test(string props)
+    //{
+    //    var test = JsonSerializer.Deserialize<Test>(props);
+    //    Console.Out.WriteLine();
+    //}
 
+    public void VoiceStateUpdate(string eventString)
+    {
+        var voiceStateUpdate = JsonSerializer.Deserialize<VoiceStateUpdateType>(eventString);
+    }
 
    public void Login(string username)
     {
-        _connections.AddOrUpdate(username, Context.ConnectionId, (key, value) => value);
+        _connections.AddOrUpdate(Context.ConnectionId, username, (key, value) => value);
         Clients.All.SendAsync("ReceiveMessage", $"{username} joined the chat");
     }
 
@@ -48,4 +56,8 @@ public class VoiceIndicatorsHub : Hub
         await base.OnDisconnectedAsync(exception);
     }
 
+    private void OnVoiceJoin(BackendState state)
+    {
+        var SenderId = _connections.First(x => x.Key == Context.ConnectionId)!.Value;
+    }
 }
